@@ -80,7 +80,7 @@ export default function StorageIndex({ auth, accounts }) {
             <div className="mb-6">
                 <Card className="bg-gradient-to-br from-slate-900 to-slate-800 text-white border-none">
                     <h3 className="text-slate-400 text-sm font-medium">Total Liquidity</h3>
-                    <p className="text-3xl font-bold mt-1">
+                    <p className="text-3xl font-bold mt-1 text-white">
                          {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(totalBalance)}
                     </p>
                 </Card>

@@ -174,7 +174,7 @@ export default function Dashboard({ auth, totalAssets, unallocatedFunds, activeG
                                 const styles = getTypeStyles(tx.type);
                                 return (
                                     <div key={tx.id} className="relative group bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 hover:border-emerald-500/30 flex items-center justify-between transition-all">
-                                        <div className="flex items-center gap-4">
+                                        <div className="flex items-center gap-4 min-w-0 flex-1 mr-4">
                                             <div className={`p-3 rounded-full ${styles.bg} shrink-0`}>
                                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                                                     {styles.icon}

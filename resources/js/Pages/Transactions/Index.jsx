@@ -60,10 +60,20 @@ export default function TransactionsIndex({ auth, transactions }) {
                             <div className="space-y-3">
                                 {groupedTransactions[date].map((tx) => (
                                     <Card key={tx.id} className="!p-4 flex items-center justify-between shadow-sm hover:shadow transition">
-                                        <div className="flex items-center gap-4">
-                                            <div className={`p-2 rounded-full ${getTypeColor(tx.type)}`}>
-                                                {/* Icon based on type */}
-                                                <div className="w-5 h-5" />
+                                        <div className="flex items-center gap-3">
+                                            {/* User Profile Photo */}
+                                            <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-slate-200 ring-2 ring-offset-2 ring-offset-white dark:ring-offset-slate-800" style={{ '--tw-ring-color': tx.type === 'deposit' || tx.type === 'adjustment' ? '#10b981' : tx.type === 'expense' ? '#f43f5e' : '#f59e0b' }}>
+                                                {tx.user?.profile_photo_url ? (
+                                                    <img 
+                                                        src={tx.user.profile_photo_url} 
+                                                        alt={tx.user.name} 
+                                                        className="h-full w-full object-cover object-center" 
+                                                    />
+                                                ) : (
+                                                    <div className="h-full w-full flex items-center justify-center text-slate-400 text-sm font-medium">
+                                                        {tx.user?.name?.charAt(0)?.toUpperCase() || '?'}
+                                                    </div>
+                                                )}
                                             </div>
                                             <div>
                                                 <p className="font-semibold text-slate-800 dark:text-slate-200 capitalize">

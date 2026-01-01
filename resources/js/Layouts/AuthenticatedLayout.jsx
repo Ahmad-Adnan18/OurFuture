@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, usePage, router } from '@inertiajs/react';
 import Toast from '@/Components/Toast';
 
@@ -7,6 +7,31 @@ import Dropdown from '@/Components/Dropdown';
 export default function AuthenticatedLayout({ user, header, children }) {
     const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
     const { url } = usePage();
+
+    // Theme Switcher Logic
+    const [theme, setTheme] = useState(() => {
+        if (typeof window !== 'undefined' && window.localStorage) {
+             const storedPrefs = window.localStorage.getItem('color-theme');
+             if (typeof storedPrefs === 'string') {
+                 return storedPrefs;
+             }
+             if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                 return 'dark';
+             }
+        }
+        return 'light';
+    });
+
+    useEffect(() => {
+        const root = window.document.documentElement;
+        root.classList.remove('light', 'dark');
+        root.classList.add(theme);
+        localStorage.setItem('color-theme', theme);
+    }, [theme]);
+
+    const toggleTheme = () => {
+        setTheme(theme === 'dark' ? 'light' : 'dark');
+    };
 
     const navLinks = [
         { name: 'Dashboard', route: 'dashboard', icon: (
@@ -86,6 +111,31 @@ export default function AuthenticatedLayout({ user, header, children }) {
             )}
 
             <div className="border-t border-slate-200 dark:border-slate-800 my-1"></div>
+            
+            <button
+                className="block w-full px-4 py-2 text-start text-sm leading-5 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none focus:bg-slate-100 dark:focus:bg-slate-800 transition duration-150 ease-in-out"
+                onClick={toggleTheme}
+            >
+                <div className="flex items-center">
+                    {theme === 'dark' ? (
+                        <>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 mr-2">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+                            </svg>
+                            Light Mode
+                        </>
+                    ) : (
+                        <>
+                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 mr-2">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+                            </svg>
+                            Dark Mode
+                        </>
+                    )}
+                </div>
+            </button>
+
+            <div className="border-t border-slate-200 dark:border-slate-800 my-1"></div>
             <Dropdown.Link href={route('logout')} method="post" as="button">
                 Log Out
             </Dropdown.Link>
@@ -122,7 +172,7 @@ export default function AuthenticatedLayout({ user, header, children }) {
                         <Dropdown.Trigger>
                             <button className="flex items-center gap-3 w-full rounded-lg p-2 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                                 <div className="h-9 w-9 overflow-hidden rounded-full bg-slate-200 shrink-0">
-                                    <img src={`https://ui-avatars.com/api/?name=${user.name}`} alt={user.name} />
+                                    <img src={user.profile_photo_url} alt={user.name} className="h-full w-full object-cover object-center" />
                                 </div>
                                 <div className="flex-1 text-left">
                                     <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">{user.name}</p>
@@ -142,12 +192,12 @@ export default function AuthenticatedLayout({ user, header, children }) {
 
             {/* Mobile Header */}
             <header className="sticky top-0 z-50 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-4 dark:border-slate-800 dark:bg-slate-900 md:hidden">
-                <span className="text-lg font-bold text-emerald-600">OurFuture</span>
+                <img src="/images/logo.png" alt="Logo" className="h-8 w-auto" />
                 <div className="flex items-center gap-2">
                      <Dropdown align="right" width="48">
                         <Dropdown.Trigger>
                              <button className="h-8 w-8 overflow-hidden rounded-full bg-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2">
-                                <img src={`https://ui-avatars.com/api/?name=${user.name}`} alt={user.name} />
+                                <img src={user.profile_photo_url} alt={user.name} className="h-full w-full object-cover object-center" />
                             </button>
                         </Dropdown.Trigger>
                         <Dropdown.Content>

@@ -1,4 +1,5 @@
-import { useForm, Head } from '@inertiajs/react';
+import { useState, useRef } from 'react';
+import { useForm, Head, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Card from '@/Components/Card';
 
@@ -6,14 +7,59 @@ export default function Show({ auth, mustVerifyEmail, status }) {
     const user = auth.user;
     
     // Update Profile Info Form
-    const { data: infoData, setData: setInfoData, patch: patchInfo, errors: infoErrors, processing: infoProcessing, recentlySuccessful: infoSuccessful } = useForm({
+    const photoInput = useRef(null);
+    const [photoPreview, setPhotoPreview] = useState(null);
+
+    const { data: infoData, setData: setInfoData, post: postInfo, errors: infoErrors, processing: infoProcessing, recentlySuccessful: infoSuccessful, clearErrors } = useForm({
+        _method: 'PUT',
         name: user.name,
         email: user.email,
+        photo: null,
     });
 
     const submitInfo = (e) => {
         e.preventDefault();
-        patchInfo(route('profile.update'));
+        postInfo('/user/profile-information', {
+           forceFormData: true,
+           preserveScroll: true,
+           onSuccess: () => clearPhotoFileInput(),
+        });
+    };
+
+    const selectNewPhoto = () => {
+        photoInput.current.click();
+    };
+
+    const updatePhotoPreview = () => {
+        const photo = photoInput.current.files[0];
+
+        if (!photo) return;
+
+        setInfoData('photo', photo);
+
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+            setPhotoPreview(e.target.result);
+        };
+
+        reader.readAsDataURL(photo);
+    };
+
+    const deletePhoto = () => {
+        router.delete(route('current-user-photo.destroy'), {
+            preserveScroll: true,
+            onSuccess: () => {
+                setPhotoPreview(null);
+                clearPhotoFileInput();
+            },
+        });
+    };
+
+    const clearPhotoFileInput = () => {
+        if (photoInput.current) {
+            photoInput.current.value = null;
+        }
     };
 
     // Update Password Form
@@ -25,7 +71,7 @@ export default function Show({ auth, mustVerifyEmail, status }) {
 
     const submitPassword = (e) => {
         e.preventDefault();
-        updatePassword(route('password.update'), {
+        updatePassword(route('user-password.update'), {
             preserveScroll: true,
             onSuccess: () => resetPass(),
             onError: () => {
@@ -58,6 +104,65 @@ export default function Show({ auth, mustVerifyEmail, status }) {
                         </div>
                         <div className="mt-5 md:mt-0 md:col-span-2">
                              <form onSubmit={submitInfo}>
+                                {/* Profile Photo */}
+                                <div className="mb-6">
+                                    <input
+                                        type="file"
+                                        className="hidden"
+                                        ref={photoInput}
+                                        onChange={updatePhotoPreview}
+                                    />
+
+                                    <div className="mb-2">
+                                        <label className="block font-medium text-sm text-slate-700 dark:text-slate-300">Photo</label>
+                                    </div>
+
+                                    <div className="flex items-center gap-4">
+                                        {/* Current Profile Photo */}
+                                        {!photoPreview && (
+                                            <div className="mt-2">
+                                                <img
+                                                    src={user.profile_photo_url}
+                                                    alt={user.name}
+                                                    className="rounded-full h-20 w-20 object-cover"
+                                                />
+                                            </div>
+                                        )}
+
+                                        {/* New Profile Photo Preview */}
+                                        {photoPreview && (
+                                            <div className="mt-2">
+                                                <span
+                                                    className="block rounded-full w-20 h-20 bg-cover bg-no-repeat bg-center"
+                                                    style={{
+                                                        backgroundImage: `url('${photoPreview}')`,
+                                                    }}
+                                                />
+                                            </div>
+                                        )}
+
+                                        <div className="flex flex-col gap-2">
+                                            <button
+                                                type="button"
+                                                className="inline-flex items-center px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md font-semibold text-xs text-slate-700 dark:text-slate-300 uppercase tracking-widest shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150"
+                                                onClick={selectNewPhoto}
+                                            >
+                                                Select A New Photo
+                                            </button>
+
+                                            {user.profile_photo_path && (
+                                                <button
+                                                    type="button"
+                                                    className="inline-flex items-center px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md font-semibold text-xs text-rose-600 dark:text-rose-400 uppercase tracking-widest shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150"
+                                                    onClick={deletePhoto}
+                                                >
+                                                    Remove Photo
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                    {infoErrors.photo && <div className="text-rose-500 text-sm mt-1">{infoErrors.photo}</div>}
+                                </div>
                                 <div className="mb-4">
                                     <label className="block font-medium text-sm text-slate-700 dark:text-slate-300">Name</label>
                                     <input
