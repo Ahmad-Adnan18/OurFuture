@@ -3,12 +3,13 @@
   <img src="https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React">
   <img src="https://img.shields.io/badge/Inertia.js-1.0-9553E9?style=for-the-badge&logo=inertia&logoColor=white" alt="Inertia.js">
   <img src="https://img.shields.io/badge/Tailwind_CSS-3.0-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS">
-  <img src="https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL">
+  <img src="https://img.shields.io/badge/Flutter-3.0-02569B?style=for-the-badge&logo=flutter&logoColor=white" alt="Flutter">
+  <img src="https://img.shields.io/badge/Dart-3.0-0175C2?style=for-the-badge&logo=dart&logoColor=white" alt="Dart">
 </p>
 
 # 💑 OurFuture
 
-**OurFuture** adalah aplikasi pencatatan keuangan kolaboratif berbasis web untuk pasangan. Berfungsi sebagai "pusat komando" untuk memonitor aset yang tersebar di berbagai instrumen (Bank Digital, Reksadana, Cash) dan mengalokasikannya ke dalam tujuan bersama.
+**OurFuture** adalah aplikasi pencatatan keuangan kolaboratif berbasis web & mobile untuk pasangan. Berfungsi sebagai "pusat komando" untuk memonitor aset yang tersebar di berbagai instrumen (Bank Digital, Reksadana, Cash) dan mengalokasikannya ke dalam tujuan bersama.
 
 ## ✨ Fitur Utama
 
@@ -19,13 +20,22 @@
 | 📊 **Smart Progress** | Logic "Spending vs Saving" - expense untuk tujuan tidak mengurangi progress |
 | 👫 **Collaborative** | Undang pasangan ke workspace yang sama |
 | 🔒 **Multi-Tenant** | Data pasangan A tidak terlihat oleh pasangan B |
+| 📱 **Mobile App** | Akses data keuangan kapan saja via Android/iOS/Windows |
 
 ## 🛠️ Tech Stack
 
+### Web & Backend
 - **Backend:** Laravel 11 + Jetstream (Teams)
 - **Frontend:** React via Inertia.js
 - **Styling:** Tailwind CSS
 - **Database:** MySQL 8.0+
+
+### Mobile App
+- **Framework:** Flutter 3.x
+- **State Management:** Riverpod
+- **Networking:** Dio
+- **Storage:** Shared Preferences
+- **Routing:** GoRouter
 
 ## 📦 Requirements
 
@@ -87,6 +97,40 @@ npm run dev
 ```
 
 Akses aplikasi di `http://localhost:8000`
+
+### 7. Instalasi Mobile App (Flutter)
+
+1.  **Masuk ke direktori flutter:**
+    ```bash
+    cd flutter_app
+    ```
+
+2.  **Install dependencies:**
+    ```bash
+    flutter pub get
+    ```
+
+3.  **Konfigurasi API:**
+    Buka `lib/config/api_config.dart`.
+    *   Untuk **Development** (Emulator/Local), gunakan URL local.
+    *   Untuk **Production**, uncomment URL production.
+
+4.  **Jalankan App:**
+    ```bash
+    flutter run -d windows  # Untuk Windows
+    flutter run -d chrome   # Untuk Web
+    ```
+
+## 🔌 API Endpoints
+
+Aplikasi mobile berkomunikasi dengan backend melalui endpoints berikut:
+
+*   **Auth:** `/api/auth/login`, `/api/auth/register`, `/api/auth/user` (POST untuk update profile)
+*   **Teams:** `/api/teams`, `/api/teams/{id}`, `/api/teams/switch/{id}`
+*   **Financial:**
+    *   `/api/wallets` (CRUD)
+    *   `/api/goals` (CRUD)
+    *   `/api/transactions` (CRUD)
 
 ## 📁 Struktur Database
 
