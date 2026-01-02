@@ -33,6 +33,7 @@ class _TeamSettingsScreenState extends State<TeamSettingsScreen> {
   }
 
   Future<void> _submit() async {
+    // ... existing submit code ... (this replacement is just context, not actual replacement of submit)
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
@@ -52,6 +53,57 @@ class _TeamSettingsScreenState extends State<TeamSettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to update team: ${e.toString()}')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _deleteTeam() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Team'),
+        content: const Text(
+          'Are you sure you want to delete this team? Once a team is deleted, all of its resources and data will be permanently deleted.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      await _teamService.deleteTeam(widget.team.id);
+      // Refresh user data to update the team list and current team
+      await _authService.getCurrentUser();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Team deleted successfully')),
+        );
+        // Go back to previous screen (likely home or team list)
+        context.pop(); 
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to delete team: ${e.toString()}')),
         );
       }
     } finally {
@@ -150,6 +202,55 @@ class _TeamSettingsScreenState extends State<TeamSettingsScreen> {
                     );
                   },
                 ),
+              const SizedBox(height: 32),
+              if (!widget.team.personalTeam) ...[
+                Text(
+                  'Delete Team',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Colors.red,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                Card(
+                  color: Colors.red.shade50,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    side: BorderSide(color: Colors.red.shade100),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          'Permanently delete this team.',
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                color: Colors.red.shade900,
+                              ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Once a team is deleted, all of its resources and data will be permanently deleted.',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Colors.red.shade700,
+                              ),
+                        ),
+                        const SizedBox(height: 16),
+                        FilledButton.icon(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                          ),
+                          onPressed: _isLoading ? null : _deleteTeam,
+                          icon: const Icon(Icons.delete_forever),
+                          label: const Text('Delete Team'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),

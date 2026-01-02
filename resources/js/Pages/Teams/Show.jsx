@@ -200,6 +200,38 @@ export default function Show({ team, availableRoles, auth, permissions }) {
                         </div>
                     </Card>
                 )}
+
+                {/* Delete Team */}
+                {permissions.canDeleteTeam && !team.personal_team && (
+                    <Card>
+                        <div className="md:grid md:grid-cols-3 md:gap-6">
+                            <div className="md:col-span-1">
+                                <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100">Delete Team</h3>
+                                <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+                                    Permanently delete this team.
+                                </p>
+                            </div>
+                            <div className="mt-5 md:mt-0 md:col-span-2">
+                                <div className="max-w-xl text-sm text-slate-600 dark:text-slate-400">
+                                    Once a team is deleted, all of its resources and data will be permanently deleted. Before deleting this team, please download any data or information regarding this team that you wish to retain.
+                                </div>
+
+                                <div className="mt-5">
+                                    <button
+                                        className="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-500 active:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                                        onClick={() => {
+                                             if (confirm('Are you sure you want to delete this team? Once a team is deleted, all of its resources and data will be permanently deleted.')) {
+                                                router.delete(route('teams.destroy', team.id));
+                                            }
+                                        }}
+                                    >
+                                        Delete Team
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
+                )}
             </div>
         </AuthenticatedLayout>
     );

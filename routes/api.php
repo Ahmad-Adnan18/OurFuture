@@ -66,4 +66,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/teams/{team}', [TeamController::class, 'update']);
     Route::put('/teams/switch/{team}', [TeamController::class, 'switchTeam']);
     Route::post('/teams/{team}/invite', [TeamController::class, 'invite']);
+    Route::delete('/teams/{team}', [TeamController::class, 'destroy']);
 });

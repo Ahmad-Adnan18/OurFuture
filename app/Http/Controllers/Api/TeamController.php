@@ -10,6 +10,7 @@ use Laravel\Jetstream\Contracts\AddsTeamMembers;
 use Laravel\Jetstream\Contracts\CreatesTeams;
 use Laravel\Jetstream\Contracts\InvitesTeamMembers;
 use Laravel\Jetstream\Contracts\UpdatesTeamNames;
+use Laravel\Jetstream\Contracts\DeletesTeams;
 use Laravel\Jetstream\Features;
 
 class TeamController extends Controller
@@ -123,5 +124,26 @@ class TeamController extends Controller
                 'message' => 'Member added successfully',
             ]);
         }
+    }
+
+    /**
+     * Delete the team
+     */
+    public function destroy(Request $request, Team $team)
+    {
+        $this->authorize('delete', $team);
+
+        if ($team->personal_team) {
+            return response()->json([
+                'message' => 'You cannot delete your personal team.',
+            ], 403);
+        }
+
+        $deleter = app(DeletesTeams::class);
+        $deleter->delete($team);
+
+        return response()->json([
+            'message' => 'Team deleted successfully',
+        ]);
     }
 }

@@ -20,4 +20,8 @@ class TeamService {
       'role': role,
     });
   }
+
+  Future<void> deleteTeam(int teamId) async {
+    await _apiService.delete('/teams/$teamId');
+  }
 }
