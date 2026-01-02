@@ -47,6 +47,7 @@ dev_dependencies:
   json_serializable: ^6.7.1
   retrofit_generator: ^8.0.6
   riverpod_generator: ^2.3.9
+  flutter_launcher_icons: ^0.13.1
 
 flutter:
   uses-material-design: true
@@ -54,3 +55,16 @@ flutter:
   assets:
     - assets/images/
     - assets/icons/
+
+# Launcher Icons Configuration  
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/images/logo-app.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/images/logo-app.png"
+  web:
+    generate: true
+    image_path: "assets/images/logo-app.png"
+    background_color: "#FFFFFF"
+    theme_color: "#FFFFFF"

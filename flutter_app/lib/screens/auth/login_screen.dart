@@ -46,6 +46,8 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } on DioException catch (e) {
       String errorMsg = 'Login failed. Please check your credentials.';
+      
+      // Show detailed error for debugging
       if (e.response?.data != null) {
         final data = e.response!.data;
         if (data is Map && data['message'] != null) {
@@ -54,15 +56,42 @@ class _LoginScreenState extends State<LoginScreen> {
           final errors = data['errors'] as Map;
           errorMsg = errors.values.first.first.toString();
         }
-      } else if (e.type == DioExceptionType.connectionError) {
-        errorMsg = 'Cannot connect to server. Check your connection.';
+      } else {
+        // Connection/network errors - show detailed info
+        switch (e.type) {
+          case DioExceptionType.connectionTimeout:
+            errorMsg = 'Connection timeout. Server took too long to respond.';
+            break;
+          case DioExceptionType.sendTimeout:
+            errorMsg = 'Send timeout. Request took too long to send.';
+            break;
+          case DioExceptionType.receiveTimeout:
+            errorMsg = 'Receive timeout. Server took too long to respond.';
+            break;
+          case DioExceptionType.badCertificate:
+            errorMsg = 'SSL Certificate error. Invalid or self-signed certificate.';
+            break;
+          case DioExceptionType.badResponse:
+            errorMsg = 'Bad response from server (${e.response?.statusCode}).';
+            break;
+          case DioExceptionType.cancel:
+            errorMsg = 'Request cancelled.';
+            break;
+          case DioExceptionType.connectionError:
+            errorMsg = 'Connection error: ${e.message ?? "Cannot reach server"}\nURL: ${e.requestOptions.baseUrl}${e.requestOptions.path}';
+            break;
+          case DioExceptionType.unknown:
+            errorMsg = 'Unknown error: ${e.message ?? "Please try again"}';
+            break;
+        }
       }
+      
       setState(() {
         _errorMessage = errorMsg;
       });
     } catch (e) {
       setState(() {
-        _errorMessage = 'Error: ${e.toString()}';
+        _errorMessage = 'Unexpected error: ${e.toString()}';
       });
     } finally {
       if (mounted) {

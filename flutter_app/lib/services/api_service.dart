@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_config.dart';
+import 'dart:io';
 
 /// API Service for handling HTTP requests with authentication
 class ApiService {
@@ -14,28 +16,56 @@ class ApiService {
   ApiService._internal() {
     _dio = Dio(BaseOptions(
       baseUrl: ApiConfig.baseUrl,
-      connectTimeout: ApiConfig.connectTimeout,
-      receiveTimeout: ApiConfig.receiveTimeout,
+      connectTimeout: const Duration(seconds: 60), // Increased timeout
+      receiveTimeout: const Duration(seconds: 60),
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
     ));
     
-    // Add interceptor for auth token
+    // Allow self-signed certificates (for development/testing)
+    // IMPORTANT: Remove this in production!
+    final adapter = _dio.httpClientAdapter;
+    if (adapter is IOHttpClientAdapter) {
+      adapter.createHttpClient = () {
+        final client = HttpClient();
+        client.badCertificateCallback = 
+            (X509Certificate cert, String host, int port) => true;
+        return client;
+      };
+    }
+    
+    // Add logging interceptor for debugging
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
+        print('🌐 API Request: ${options.method} ${options.uri}');
+        print('📦 Headers: ${options.headers}');
+        print('📤 Data: ${options.data}');
+        
         final token = await getToken();
         if (token != null) {
           options.headers['Authorization'] = 'Bearer $token';
         }
         return handler.next(options);
       },
+      onResponse: (response, handler) {
+        print('✅ API Response: ${response.statusCode} ${response.requestOptions.uri}');
+        return handler.next(response);
+      },
       onError: (error, handler) async {
+        print('❌ API Error: ${error.message}');
+        print('🔍 Error Type: ${error.type}');
+        print('📍 URL: ${error.requestOptions.uri}');
+        
+        if (error.response != null) {
+          print('📊 Status Code: ${error.response?.statusCode}');
+          print('📄 Response Data: ${error.response?.data}');
+        }
+        
         // Handle 401 Unauthorized - logout user
         if (error.response?.statusCode == 401) {
           await clearToken();
-          // You can add navigation to login here or emit an event
         }
         return handler.next(error);
       },

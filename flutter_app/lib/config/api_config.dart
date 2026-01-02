@@ -7,7 +7,7 @@ class ApiConfig {
   // 🖥️ LOCAL DEVELOPMENT:
   //static const String baseUrl = 'http://127.0.0.1:8000/api';
   
-  // 🚀 PRODUCTION (uncomment when API is deployed):
+  // 🚀 PRODUCTION - Back to domain (server rejects IP):
   static const String baseUrl = 'https://app.nandevv.com/api';
   
   // 🌐 UNTUK WEB (flutter run -d chrome):

@@ -34,14 +34,31 @@ Route::middleware('auth:sanctum')->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index']);
 
-    // Goals
-    Route::apiResource('goals', GoalController::class);
+    // Goals - prefix with 'api.' to avoid conflict with web routes
+    Route::apiResource('goals', GoalController::class)->names([
+        'index' => 'api.goals.index',
+        'store' => 'api.goals.store',
+        'show' => 'api.goals.show',
+        'update' => 'api.goals.update',
+        'destroy' => 'api.goals.destroy',
+    ]);
 
-    // Storage Accounts (Wallets)
-    Route::apiResource('wallets', StorageAccountController::class);
+    // Storage Accounts (Wallets) - prefix with 'api.'
+    Route::apiResource('wallets', StorageAccountController::class)->names([
+        'index' => 'api.wallets.index',
+        'store' => 'api.wallets.store',
+        'show' => 'api.wallets.show',
+        'update' => 'api.wallets.update',
+        'destroy' => 'api.wallets.destroy',
+    ]);
 
-    // Transactions
-    Route::apiResource('transactions', TransactionController::class)->except(['update']);
+    // Transactions - prefix with 'api.'
+    Route::apiResource('transactions', TransactionController::class)->except(['update'])->names([
+        'index' => 'api.transactions.index',
+        'store' => 'api.transactions.store',
+        'show' => 'api.transactions.show',
+        'destroy' => 'api.transactions.destroy',
+    ]);
 
     // Teams
     Route::get('/teams', [TeamController::class, 'index']);
