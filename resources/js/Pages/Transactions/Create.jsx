@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, useForm, Link } from '@inertiajs/react';
+import { Head, useForm, Link, router } from '@inertiajs/react';
 import Card from '@/Components/Card';
 import MoneyInput from '@/Components/MoneyInput';
 
@@ -15,6 +15,7 @@ export default function TransactionCreate({ auth, storageAccounts, goals }) {
     });
 
     const [availableBalance, setAvailableBalance] = useState(0);
+    const [isSubtractAdjustment, setIsSubtractAdjustment] = useState(false);
 
     // Update available balance warning logic
     useEffect(() => {
@@ -29,13 +30,30 @@ export default function TransactionCreate({ auth, storageAccounts, goals }) {
 
     const submit = (e) => {
         e.preventDefault();
-        post(route('transactions.store'));
+        
+        // For adjustment with subtract, send negative amount
+        let finalAmount = parseFloat(data.amount) || 0;
+        if (data.type === 'adjustment' && isSubtractAdjustment) {
+            finalAmount = -Math.abs(finalAmount);
+        }
+        
+        // Manually submit with modified amount using router
+        const formData = {
+            ...data,
+            amount: finalAmount,
+        };
+        
+        // Use Inertia router directly
+        router.post(route('transactions.store'), formData, {
+            preserveScroll: true,
+        });
     };
 
     const types = [
         { id: 'deposit', label: 'Income / Deposit', color: 'bg-emerald-100 text-emerald-700 ring-emerald-600' },
         { id: 'expense', label: 'Expense', color: 'bg-rose-100 text-rose-700 ring-rose-600' },
         { id: 'withdrawal', label: 'Withdrawal', color: 'bg-amber-100 text-amber-700 ring-amber-600' },
+        { id: 'allocate', label: 'Allocate', color: 'bg-violet-100 text-violet-700 ring-violet-600' },
         { id: 'adjustment', label: 'Adjustment', color: 'bg-sky-100 text-sky-700 ring-sky-600' },
     ];
 
@@ -69,6 +87,35 @@ export default function TransactionCreate({ auth, storageAccounts, goals }) {
                                 ))}
                             </div>
                             {errors.type && <p className="text-sm text-rose-500 mt-1">{errors.type}</p>}
+                            
+                            {/* Type Description Helper */}
+                            <p className="text-xs text-slate-500 mt-2">
+                                {data.type === 'deposit' && '💰 Add money to your wallet, optionally allocate to a goal.'}
+                                {data.type === 'expense' && '🛒 Spend money on something — progress goal stays if allocated.'}
+                                {data.type === 'withdrawal' && '↩️ Take back money from a goal — progress will decrease.'}
+                                {data.type === 'allocate' && '📌 Move unallocated funds to a goal — wallet stays the same.'}
+                                {data.type === 'adjustment' && '⚖️ Correct your wallet balance without affecting goals.'}
+                            </p>
+                            
+                            {/* Adjustment Direction Toggle */}
+                            {data.type === 'adjustment' && (
+                                <div className="mt-3 flex gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsSubtractAdjustment(false)}
+                                        className={`flex-1 px-3 py-2 text-sm font-medium rounded-md border ${!isSubtractAdjustment ? 'bg-emerald-100 text-emerald-700 border-emerald-300 ring-2 ring-emerald-500' : 'border-slate-200 bg-white text-slate-600'}`}
+                                    >
+                                        ➕ Add Balance
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsSubtractAdjustment(true)}
+                                        className={`flex-1 px-3 py-2 text-sm font-medium rounded-md border ${isSubtractAdjustment ? 'bg-rose-100 text-rose-700 border-rose-300 ring-2 ring-rose-500' : 'border-slate-200 bg-white text-slate-600'}`}
+                                    >
+                                        ➖ Subtract Balance
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
                         {/* Amount */}
@@ -114,24 +161,25 @@ export default function TransactionCreate({ auth, storageAccounts, goals }) {
                         {/* Goal Selection - Conditional */}
                         {/* Logic: 
                             - Deposit: Optional (Unallocated if empty)
-                            - Expense: Required (Must pick a goal)
+                            - Expense: Optional (for daily spending)
                             - Withdrawal: Required (Which goal to pull back from?)
+                            - Allocate: Required (Which goal to allocate to?)
                             - Adjustment: Disabled/Hidden
                          */}
                         {data.type !== 'adjustment' && (
                             <div className={`transition-all duration-300 ${data.type === 'adjustment' ? 'opacity-50 grayscale' : ''}`}>
                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                    Allocation Goal {data.type === 'expense' || data.type === 'withdrawal' ? <span className="text-rose-500">*</span> : <span className="text-slate-400 font-normal">(Optional)</span>}
+                                    Allocation Goal {['withdrawal', 'allocate'].includes(data.type) ? <span className="text-rose-500">*</span> : <span className="text-slate-400 font-normal">(Optional)</span>}
                                 </label>
                                 <select
                                     className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 dark:bg-slate-900 dark:border-slate-700 dark:text-white"
                                     value={data.goal_id}
                                     onChange={(e) => setData('goal_id', e.target.value)}
                                     disabled={data.type === 'adjustment'}
-                                    required={['expense', 'withdrawal'].includes(data.type)}
+                                    required={['withdrawal', 'allocate'].includes(data.type)}
                                 >
                                     <option value="">
-                                        {['deposit'].includes(data.type) ? 'Unallocated (Dana Bebas)' : 'Select Goal'}
+                                        {['deposit', 'expense'].includes(data.type) ? 'Unallocated (Dana Bebas)' : 'Select Goal'}
                                     </option>
                                     {goals.map((goal) => (
                                         <option key={goal.id} value={goal.id}>

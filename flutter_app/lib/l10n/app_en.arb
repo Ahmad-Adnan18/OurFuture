@@ -218,5 +218,16 @@
   "language": "Language",
   "english": "English",
   "indonesian": "Indonesian",
-  "selectLanguage": "Select Language"
+  "selectLanguage": "Select Language",
+  "addBalance": "Add Balance",
+  "subtractBalance": "Subtract Balance",
+  "adjustmentDirection": "Adjustment Direction",
+  "depositDescription": "Add money to your wallet, optionally allocate to a goal.",
+  "expenseDescription": "Spend money on something — progress goal stays if allocated.",
+  "withdrawalDescription": "Take back money from a goal — progress will decrease.",
+  "adjustmentDescription": "Correct your wallet balance without affecting goals.",
+  "collected": "Collected",
+  "remaining": "Remaining",
+  "allocate": "Allocate",
+  "allocateDescription": "Move unallocated funds to a goal — wallet stays the same."
 }

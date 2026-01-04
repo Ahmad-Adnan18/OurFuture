@@ -31,6 +31,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   int? _selectedWalletId;
   int? _selectedGoalId;
   DateTime _selectedDate = DateTime.now();
+  bool _isSubtractAdjustment = false; // For adjustment direction
   
   bool _isLoading = false;
   bool _isLoadingData = true;
@@ -49,21 +50,23 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   }
 
   Future<void> _loadData() async {
-    final l10n = AppLocalizations.of(context)!;
     try {
       final wallets = await _walletService.getWallets();
       final goals = await _goalService.getGoals();
       
-      setState(() {
-        _wallets = wallets;
-        _goals = goals;
-        _isLoadingData = false;
-        if (wallets.isNotEmpty) {
-          _selectedWalletId = wallets.first.id;
-        }
-      });
+      if (mounted) {
+        setState(() {
+          _wallets = wallets;
+          _goals = goals;
+          _isLoadingData = false;
+          if (wallets.isNotEmpty) {
+            _selectedWalletId = wallets.first.id;
+          }
+        });
+      }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         setState(() => _isLoadingData = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(l10n.failedToLoad)),
@@ -72,8 +75,8 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
     }
   }
 
-  bool get _requiresGoal => 
-      _selectedType == 'expense' || _selectedType == 'withdrawal';
+  // Withdrawal and allocate require goal, expense is optional
+  bool get _requiresGoal => _selectedType == 'withdrawal' || _selectedType == 'allocate';
 
   bool get _showGoalField => _selectedType != 'adjustment';
 
@@ -98,7 +101,12 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final amount = double.parse(_amountController.text.replaceAll(',', ''));
+      double amount = double.parse(_amountController.text.replaceAll(',', ''));
+      
+      // For adjustment with subtract, send negative amount
+      if (_selectedType == 'adjustment' && _isSubtractAdjustment) {
+        amount = -amount;
+      }
 
       await _transactionService.createTransaction(
         date: _selectedDate.toIso8601String().split('T').first,
@@ -214,27 +222,117 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                       },
                     ),
                     const SizedBox(height: 8),
-                    // Adjustment option as separate button
-                    OutlinedButton.icon(
-                      onPressed: () {
-                        setState(() {
-                          _selectedType = 'adjustment';
-                          _selectedGoalId = null;
-                        });
-                      },
-                      icon: Icon(
-                        Icons.tune,
-                        color: _selectedType == 'adjustment' 
-                            ? colorScheme.primary 
-                            : colorScheme.onSurfaceVariant,
-                      ),
-                      label: Text(l10n.adjustment),
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: _selectedType == 'adjustment'
-                            ? colorScheme.primaryContainer
-                            : null,
+                    // Allocate and Adjustment options as separate buttons
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              setState(() {
+                                _selectedType = 'allocate';
+                              });
+                            },
+                            icon: Icon(
+                              Icons.push_pin,
+                              color: _selectedType == 'allocate' 
+                                  ? Colors.purple 
+                                  : colorScheme.onSurfaceVariant,
+                            ),
+                            label: Text(l10n.allocate),
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: _selectedType == 'allocate'
+                                  ? Colors.purple.shade50
+                                  : null,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              setState(() {
+                                _selectedType = 'adjustment';
+                                _selectedGoalId = null;
+                              });
+                            },
+                            icon: Icon(
+                              Icons.tune,
+                              color: _selectedType == 'adjustment' 
+                                  ? colorScheme.primary 
+                                  : colorScheme.onSurfaceVariant,
+                            ),
+                            label: Text(l10n.adjustment),
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: _selectedType == 'adjustment'
+                                  ? colorScheme.primaryContainer
+                                  : null,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    
+                    // Type Description Helper
+                    const SizedBox(height: 8),
+                    Text(
+                      _selectedType == 'deposit' ? '💰 ${l10n.depositDescription}' :
+                      _selectedType == 'expense' ? '🛒 ${l10n.expenseDescription}' :
+                      _selectedType == 'withdrawal' ? '↩️ ${l10n.withdrawalDescription}' :
+                      _selectedType == 'allocate' ? '📌 ${l10n.allocateDescription}' :
+                      '⚖️ ${l10n.adjustmentDescription}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: colorScheme.onSurfaceVariant,
                       ),
                     ),
+                    
+                    // Adjustment Direction Toggle
+                    if (_selectedType == 'adjustment') ...[
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ChoiceChip(
+                              label: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.add, size: 18),
+                                  const SizedBox(width: 4),
+                                  Text(l10n.addBalance),
+                                ],
+                              ),
+                              selected: !_isSubtractAdjustment,
+                              onSelected: (selected) {
+                                if (selected) {
+                                  setState(() => _isSubtractAdjustment = false);
+                                }
+                              },
+                              selectedColor: Colors.green.shade100,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: ChoiceChip(
+                              label: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.remove, size: 18),
+                                  const SizedBox(width: 4),
+                                  Text(l10n.subtractBalance),
+                                ],
+                              ),
+                              selected: _isSubtractAdjustment,
+                              onSelected: (selected) {
+                                if (selected) {
+                                  setState(() => _isSubtractAdjustment = true);
+                                }
+                              },
+                              selectedColor: Colors.red.shade100,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                     const SizedBox(height: 24),
 
                     // Amount Field

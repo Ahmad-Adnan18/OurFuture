@@ -90,6 +90,16 @@ class TransactionObserver
                 // Only storage balance changes, no goal involved
                 $storageAccount->increment('balance', $amount * $multiplier);
                 break;
+                
+            case 'allocate':
+                // Move funds from unallocated to goal
+                // Storage balance does NOT change (no new money)
+                // Goal balances increase (allocating existing funds)
+                if ($goal) {
+                    $goal->increment('current_balance', $amount * $multiplier);
+                    $goal->increment('total_collected', $amount * $multiplier);
+                }
+                break;
         }
     }
 }

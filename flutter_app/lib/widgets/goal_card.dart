@@ -126,24 +126,53 @@ class GoalCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 
-                // Bottom Info
+                // Bottom Info - Show both collected and remaining
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                     Text(
-                      currencyFormat.format(goal.totalCollected),
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
-                        fontSize: 14
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '💰 ${l10n.collected}',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          Text(
+                            currencyFormat.format(goal.totalCollected),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.primary,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    Text(
-                      '${(progress * 100).toInt()}%',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: colorScheme.onSurfaceVariant,
-                        fontSize: 12
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            '💵 ${l10n.remaining}',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          Text(
+                            currencyFormat.format(goal.currentBalance),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: goal.currentBalance < goal.totalCollected 
+                                  ? Colors.orange.shade700 
+                                  : colorScheme.onSurface,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],

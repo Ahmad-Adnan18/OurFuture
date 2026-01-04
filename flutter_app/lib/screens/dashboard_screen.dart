@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../models/dashboard.dart';
@@ -136,7 +137,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   ),
                                   TextButton(
                                     onPressed: () {
-                                      // TODO: Navigate to allocation screen
+                                      context.push('/transactions/create');
                                     },
                                     child: Text(l10n.allocate),
                                   )

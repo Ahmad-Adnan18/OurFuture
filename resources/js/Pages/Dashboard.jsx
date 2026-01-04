@@ -90,7 +90,7 @@ export default function Dashboard({ auth, totalAssets, unallocatedFunds, activeG
                         <div className="mt-4 flex gap-2">
                              <p className="text-xs text-slate-300">Available to be assigned to goals.</p>
                              {unallocatedFunds > 0 && (
-                                <Link href={route('transactions.create', { type: 'deposit' })} className="text-xs font-bold text-emerald-400 hover:text-emerald-300 underline">Allocate Now</Link>
+                                <Link href={route('transactions.create', { type: 'allocate' })} className="text-xs font-bold text-emerald-400 hover:text-emerald-300 underline">Allocate Now</Link>
                              )}
                         </div>
                     </div>
@@ -136,9 +136,15 @@ export default function Dashboard({ auth, totalAssets, unallocatedFunds, activeG
                                         <span className="text-xs font-bold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 px-2.5 py-1 rounded-full">{Math.round(goal.progress_percent)}%</span>
                                     </div>
                                     <ProgressBar percent={goal.progress_percent} />
-                                    <div className="flex justify-between text-xs mt-3 text-slate-500 font-medium">
-                                        <span className="text-slate-700 dark:text-slate-300">{formatCurrency(goal.current_balance)}</span>
-                                        <span className="opacity-70">Target: {formatCurrency(goal.target_amount)}</span>
+                                    <div className="flex justify-between text-xs mt-3 font-medium">
+                                        <div>
+                                            <span className="text-slate-400">💰 Collected</span>
+                                            <p className="text-emerald-600 font-bold">{formatCurrency(goal.total_collected)}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <span className="text-slate-400">💵 Remaining</span>
+                                            <p className={`font-bold ${goal.current_balance < goal.total_collected ? 'text-orange-500' : 'text-slate-700 dark:text-slate-300'}`}>{formatCurrency(goal.current_balance)}</p>
+                                        </div>
                                     </div>
                                 </Card>
                             ))

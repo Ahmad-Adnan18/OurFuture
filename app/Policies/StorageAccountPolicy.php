@@ -21,7 +21,7 @@ class StorageAccountPolicy
      */
     public function view(User $user, StorageAccount $storageAccount): bool
     {
-        return $user->belongsToTeam($storageAccount->team);
+        return $user->current_team_id === $storageAccount->team_id;
     }
 
     /**
@@ -37,7 +37,7 @@ class StorageAccountPolicy
      */
     public function update(User $user, StorageAccount $storageAccount): bool
     {
-        return $user->belongsToTeam($storageAccount->team);
+        return $user->current_team_id === $storageAccount->team_id;
     }
 
     /**
@@ -45,6 +45,6 @@ class StorageAccountPolicy
      */
     public function delete(User $user, StorageAccount $storageAccount): bool
     {
-        return $user->belongsToTeam($storageAccount->team);
+        return $user->current_team_id === $storageAccount->team_id;
     }
 }

@@ -39,12 +39,25 @@ class TransactionController extends Controller
     {
         $validated = $request->validate([
             'date' => 'required|date',
-            'type' => 'required|in:deposit,expense,withdrawal,adjustment',
+            'type' => 'required|in:deposit,expense,withdrawal,adjustment,allocate',
             'storage_account_id' => 'required|exists:storage_accounts,id',
-            'amount' => 'required|numeric|min:1',
+            'amount' => 'required|numeric', // Allow any numeric, type-specific validation below
             'goal_id' => 'nullable|exists:goals,id',
             'notes' => 'nullable|string',
         ]);
+
+        // Type-specific amount validation
+        if ($request->type === 'adjustment') {
+            // Adjustment allows negative (for subtract) but not zero
+            if ($validated['amount'] == 0) {
+                return response()->json(['message' => 'Amount cannot be zero'], 422);
+            }
+        } else {
+            // Other types must be positive
+            if ($validated['amount'] <= 0) {
+                return response()->json(['message' => 'Amount must be positive'], 422);
+            }
+        }
 
         // Verify storage account belongs to user's team
         $storageAccount = StorageAccount::where('id', $validated['storage_account_id'])

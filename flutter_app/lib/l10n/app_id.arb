@@ -194,5 +194,16 @@
   "language": "Bahasa",
   "english": "Inggris",
   "indonesian": "Indonesia",
-  "selectLanguage": "Pilih Bahasa"
+  "selectLanguage": "Pilih Bahasa",
+  "addBalance": "Tambah Saldo",
+  "subtractBalance": "Kurangi Saldo",
+  "adjustmentDirection": "Arah Penyesuaian",
+  "depositDescription": "Tambah uang ke dompet, bisa dialokasikan ke goal.",
+  "expenseDescription": "Keluarkan uang untuk sesuatu — progress goal tetap.",
+  "withdrawalDescription": "Tarik uang dari goal — progress akan berkurang.",
+  "adjustmentDescription": "Koreksi saldo dompet tanpa mempengaruhi goal.",
+  "collected": "Terkumpul",
+  "remaining": "Sisa",
+  "allocate": "Alokasi",
+  "allocateDescription": "Pindahkan dana bebas ke goal — saldo dompet tetap sama."
 }

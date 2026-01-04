@@ -90,8 +90,12 @@ export default function TransactionsIndex({ auth, transactions }) {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className={`font-bold ${['expense', 'withdrawal'].includes(tx.type) ? 'text-slate-900 dark:text-white' : 'text-emerald-600'}`}>
-                                            {['expense', 'withdrawal'].includes(tx.type) ? '-' : '+'} {formatCurrency(tx.amount)}
+                                        <div className={`font-bold ${
+                                            ['expense', 'withdrawal'].includes(tx.type) || (tx.type === 'adjustment' && tx.amount < 0)
+                                                ? 'text-slate-900 dark:text-white' 
+                                                : 'text-emerald-600'
+                                        }`}>
+                                            {['expense', 'withdrawal'].includes(tx.type) || (tx.type === 'adjustment' && tx.amount < 0) ? '-' : '+'} {formatCurrency(Math.abs(tx.amount))}
                                         </div>
                                     </Card>
                                 ))}
