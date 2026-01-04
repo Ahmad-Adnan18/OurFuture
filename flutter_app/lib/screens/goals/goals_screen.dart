@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../models/goal.dart';
 import '../../services/goal_service.dart';
 import '../../widgets/goal_card.dart';
@@ -43,36 +44,42 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
       final activeGoals = await _goalService.getGoals(status: 'active');
       final archivedGoals = await _goalService.getGoals(status: 'archived');
       
-      setState(() {
-        _activeGoals = activeGoals;
-        _archivedGoals = archivedGoals;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _activeGoals = activeGoals;
+          _archivedGoals = archivedGoals;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _error = 'Failed to load goals';
-        _isLoading = false;
-      });
+      if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
+        setState(() {
+          _error = l10n.failedToLoadGoals;
+          _isLoading = false;
+        });
+      }
     }
   }
 
   Future<void> _deleteGoal(Goal goal) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Goal'),
-        content: Text('Are you sure you want to delete "${goal.title}"?'),
+        title: Text(l10n.deleteGoal),
+        content: Text(l10n.deleteGoalConfirmation(goal.title)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
-            child: const Text('Delete'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -84,14 +91,14 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
         _loadGoals();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Goal deleted')),
+            SnackBar(content: Text(l10n.goalDeleted)),
           );
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Failed to delete goal'),
+              content: Text(l10n.failedToDeleteGoal),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
@@ -103,10 +110,11 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Goals'),
+        title: Text(l10n.goals),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -115,9 +123,9 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
         ],
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [
-            Tab(text: 'Active'),
-            Tab(text: 'Archived'),
+          tabs: [
+            Tab(text: l10n.active),
+            Tab(text: l10n.archived),
           ],
         ),
       ),
@@ -128,11 +136,11 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(_error!, style: TextStyle(color: colorScheme.error)),
+                      Text(l10n.failedToLoadGoals, style: TextStyle(color: colorScheme.error)),
                       const SizedBox(height: 16),
                       FilledButton(
                         onPressed: _loadGoals,
-                        child: const Text('Retry'),
+                        child: Text(l10n.retry),
                       ),
                     ],
                   ),
@@ -144,7 +152,7 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
                     RefreshIndicator(
                       onRefresh: _loadGoals,
                       child: _activeGoals.isEmpty
-                          ? _buildEmptyState('No active goals yet')
+                          ? _buildEmptyState(l10n.noActiveGoalsYet)
                           : ListView.builder(
                               padding: const EdgeInsets.all(16),
                               itemCount: _activeGoals.length,
@@ -166,7 +174,7 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
                     RefreshIndicator(
                       onRefresh: _loadGoals,
                       child: _archivedGoals.isEmpty
-                          ? _buildEmptyState('No archived goals')
+                          ? _buildEmptyState(l10n.noArchivedGoals)
                           : ListView.builder(
                               padding: const EdgeInsets.all(16),
                               itemCount: _archivedGoals.length,

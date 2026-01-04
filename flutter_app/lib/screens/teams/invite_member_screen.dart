@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../services/team_service.dart';
 import '../../models/user.dart';
 
@@ -19,14 +20,9 @@ class _InviteMemberScreenState extends State<InviteMemberScreen> {
   final _teamService = TeamService();
   bool _isLoading = false;
 
-  final List<DropdownMenuItem<String>> _roleItems = const [
-    DropdownMenuItem(value: 'admin', child: Text('Administrator')),
-    DropdownMenuItem(value: 'editor', child: Text('Editor')),
-  ];
-
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-
+    final l10n = AppLocalizations.of(context)!;
     setState(() => _isLoading = true);
 
     try {
@@ -34,14 +30,14 @@ class _InviteMemberScreenState extends State<InviteMemberScreen> {
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Invitation sent to ${_emailController.text}')),
+          SnackBar(content: Text(l10n.invitationSentTo(_emailController.text))),
         );
         context.pop();
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to invite member: ${e.toString()}')),
+          SnackBar(content: Text('${l10n.failedToInviteMember}: ${e.toString()}')),
         );
       }
     } finally {
@@ -53,9 +49,16 @@ class _InviteMemberScreenState extends State<InviteMemberScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
+    final List<DropdownMenuItem<String>> roleItems = [
+      DropdownMenuItem(value: 'admin', child: Text(l10n.administrator)),
+      DropdownMenuItem(value: 'editor', child: Text(l10n.editor)),
+    ];
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Invite Member'),
+        title: Text(l10n.inviteMember),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -65,24 +68,24 @@ class _InviteMemberScreenState extends State<InviteMemberScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'Invite to ${widget.team.name}',
+                l10n.inviteToTeam(widget.team.name),
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email Address',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.email),
+                decoration: InputDecoration(
+                  labelText: l10n.emailAddress,
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.email),
                 ),
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter an email';
+                    return l10n.enterEmail;
                   }
                   if (!value.contains('@')) {
-                    return 'Please enter a valid email';
+                    return l10n.enterValidEmail;
                   }
                   return null;
                 },
@@ -90,12 +93,12 @@ class _InviteMemberScreenState extends State<InviteMemberScreen> {
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 value: _role,
-                decoration: const InputDecoration(
-                  labelText: 'Role',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.shield),
+                decoration: InputDecoration(
+                  labelText: l10n.role,
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.shield),
                 ),
-                items: _roleItems,
+                items: roleItems,
                 onChanged: (value) {
                   setState(() {
                     _role = value!;
@@ -104,7 +107,7 @@ class _InviteMemberScreenState extends State<InviteMemberScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Administrator: Can manage team settings and members.\nEditor: Can create goals and transactions.',
+                l10n.roleDescription,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey),
               ),
               const SizedBox(height: 24),
@@ -112,7 +115,7 @@ class _InviteMemberScreenState extends State<InviteMemberScreen> {
                 onPressed: _isLoading ? null : _submit,
                 child: _isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text('Send Invitation'),
+                    : Text(l10n.sendInvitation),
               ),
             ],
           ),

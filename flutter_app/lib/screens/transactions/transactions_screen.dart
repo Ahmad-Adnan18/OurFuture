@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../models/transaction.dart';
 import '../../services/transaction_service.dart';
 import '../../widgets/transaction_tile.dart';
@@ -47,7 +48,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     if (refresh) {
       _currentPage = 1;
     }
-
+    // Don't access AppLocalizations here as it might be called from initState
     setState(() {
       _isLoading = true;
       _error = null;
@@ -59,16 +60,21 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
         type: _selectedType,
       );
       
-      setState(() {
-        _transactions = response.data;
-        _hasMorePages = response.hasMorePages;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _transactions = response.data;
+          _hasMorePages = response.hasMorePages;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _error = 'Failed to load transactions';
-        _isLoading = false;
-      });
+      if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
+        setState(() {
+          _error = l10n.failedToLoadTransactions;
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -95,22 +101,23 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   }
 
   Future<void> _deleteTransaction(Transaction transaction) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Transaction'),
-        content: const Text('Are you sure you want to delete this transaction?'),
+        title: Text(l10n.deleteTransaction),
+        content: Text(l10n.deleteTransactionConfirmation),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
-            child: const Text('Delete'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -122,14 +129,14 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
         _loadTransactions(refresh: true);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Transaction deleted')),
+            SnackBar(content: Text(l10n.transactionDeleted)),
           );
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Failed to delete transaction'),
+              content: Text(l10n.failedToDeleteTransaction),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
@@ -141,10 +148,11 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Transactions'),
+        title: Text(l10n.transactions),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -159,15 +167,15 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [
-                _buildFilterChip(null, 'All'),
+                _buildFilterChip(null, l10n.all),
                 const SizedBox(width: 8),
-                _buildFilterChip('deposit', 'Deposit'),
+                _buildFilterChip('deposit', l10n.deposit),
                 const SizedBox(width: 8),
-                _buildFilterChip('expense', 'Expense'),
+                _buildFilterChip('expense', l10n.expense),
                 const SizedBox(width: 8),
-                _buildFilterChip('withdrawal', 'Withdrawal'),
+                _buildFilterChip('withdrawal', l10n.withdrawal),
                 const SizedBox(width: 8),
-                _buildFilterChip('adjustment', 'Adjustment'),
+                _buildFilterChip('adjustment', l10n.adjustment),
               ],
             ),
           ),
@@ -184,7 +192,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                       const SizedBox(height: 16),
                       FilledButton(
                         onPressed: () => _loadTransactions(refresh: true),
-                        child: const Text('Retry'),
+                        child: Text(l10n.retry),
                       ),
                     ],
                   ),
@@ -207,7 +215,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                                     ),
                                     const SizedBox(height: 16),
                                     Text(
-                                      'No transactions yet',
+                                      l10n.noTransactionsYet,
                                       style: TextStyle(color: colorScheme.onSurfaceVariant),
                                     ),
                                   ],

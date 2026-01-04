@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../services/team_service.dart';
 import '../../services/auth_service.dart';
 import '../../models/user.dart';
@@ -33,8 +34,8 @@ class _TeamSettingsScreenState extends State<TeamSettingsScreen> {
   }
 
   Future<void> _submit() async {
-    // ... existing submit code ... (this replacement is just context, not actual replacement of submit)
     if (!_formKey.currentState!.validate()) return;
+    final l10n = AppLocalizations.of(context)!;
 
     setState(() => _isLoading = true);
 
@@ -45,14 +46,14 @@ class _TeamSettingsScreenState extends State<TeamSettingsScreen> {
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Team updated successfully')),
+          SnackBar(content: Text(l10n.teamUpdated)),
         );
         context.pop();
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update team: ${e.toString()}')),
+          SnackBar(content: Text('${l10n.failedToUpdateTeam}: ${e.toString()}')),
         );
       }
     } finally {
@@ -63,22 +64,21 @@ class _TeamSettingsScreenState extends State<TeamSettingsScreen> {
   }
 
   Future<void> _deleteTeam() async {
+    final l10n = AppLocalizations.of(context)!;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Team'),
-        content: const Text(
-          'Are you sure you want to delete this team? Once a team is deleted, all of its resources and data will be permanently deleted.',
-        ),
+        title: Text(l10n.deleteTeam),
+        content: Text(l10n.deleteTeamConfirmation),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -95,7 +95,7 @@ class _TeamSettingsScreenState extends State<TeamSettingsScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Team deleted successfully')),
+          SnackBar(content: Text(l10n.teamDeleted)),
         );
         // Go back to previous screen (likely home or team list)
         context.pop(); 
@@ -103,7 +103,7 @@ class _TeamSettingsScreenState extends State<TeamSettingsScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to delete team: ${e.toString()}')),
+          SnackBar(content: Text('${l10n.failedToDeleteTeam}: ${e.toString()}')),
         );
       }
     } finally {
@@ -115,9 +115,10 @@ class _TeamSettingsScreenState extends State<TeamSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Team Settings'),
+        title: Text(l10n.teamSettings),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -127,20 +128,20 @@ class _TeamSettingsScreenState extends State<TeamSettingsScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'Update Team Name',
+                l10n.updateTeamName,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Team Name',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.group),
+                decoration: InputDecoration(
+                  labelText: l10n.teamName,
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.group),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter a team name';
+                    return l10n.enterTeamName;
                   }
                   return null;
                 },
@@ -150,11 +151,11 @@ class _TeamSettingsScreenState extends State<TeamSettingsScreen> {
                 onPressed: _isLoading ? null : _submit,
                 child: _isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text('Save Changes'),
+                    : Text(l10n.saveChanges),
               ),
               const SizedBox(height: 32),
               Text(
-                'Team Members',
+                l10n.teamMembers,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
@@ -164,7 +165,7 @@ class _TeamSettingsScreenState extends State<TeamSettingsScreen> {
                     padding: const EdgeInsets.all(16.0),
                     child: Center(
                       child: Text(
-                        'No other members in this team.',
+                        l10n.noOtherMembers,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
@@ -195,7 +196,7 @@ class _TeamSettingsScreenState extends State<TeamSettingsScreen> {
                         icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
                         onPressed: () {
                            ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Remove member coming soon!')),
+                            SnackBar(content: Text(l10n.removeMemberComingSoon)),
                           );
                         },
                       ),
@@ -205,7 +206,7 @@ class _TeamSettingsScreenState extends State<TeamSettingsScreen> {
               const SizedBox(height: 32),
               if (!widget.team.personalTeam) ...[
                 Text(
-                  'Delete Team',
+                  l10n.deleteTeam,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: Colors.red,
                       ),
@@ -224,14 +225,14 @@ class _TeamSettingsScreenState extends State<TeamSettingsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
-                          'Permanently delete this team.',
+                          l10n.permanentlyDeleteTeam,
                           style: Theme.of(context).textTheme.titleSmall?.copyWith(
                                 color: Colors.red.shade900,
                               ),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Once a team is deleted, all of its resources and data will be permanently deleted.',
+                          l10n.deleteTeamWarning,
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 color: Colors.red.shade700,
                               ),
@@ -244,7 +245,7 @@ class _TeamSettingsScreenState extends State<TeamSettingsScreen> {
                           ),
                           onPressed: _isLoading ? null : _deleteTeam,
                           icon: const Icon(Icons.delete_forever),
-                          label: const Text('Delete Team'),
+                          label: Text(l10n.deleteTeam),
                         ),
                       ],
                     ),

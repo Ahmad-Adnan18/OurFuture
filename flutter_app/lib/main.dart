@@ -19,6 +19,10 @@ import 'services/auth_service.dart';
 import 'widgets/app_drawer.dart';
 
 import 'providers/theme_provider.dart';
+import 'providers/locale_provider.dart';
+
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 void main() {
   runApp(const ProviderScope(child: OurFutureApp()));
@@ -30,10 +34,22 @@ class OurFutureApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeProvider);
+    final locale = ref.watch(localeProvider);
 
     return MaterialApp.router(
       title: 'OurFuture',
       debugShowCheckedModeBanner: false,
+      locale: locale,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en'), // English
+        Locale('id'), // Indonesian
+      ],
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF059669), // emerald-600
@@ -182,8 +198,6 @@ class MainShell extends StatelessWidget {
         title: Row(
           children: [
             Image.asset('assets/images/logo.png', height: 32),
-            const SizedBox(width: 8),
-            const Text('OurFuture'),
           ],
         ),
         actions: [

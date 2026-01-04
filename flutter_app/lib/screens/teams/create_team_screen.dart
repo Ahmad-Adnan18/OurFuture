@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../services/team_service.dart';
 import '../../services/auth_service.dart';
 
@@ -19,7 +20,7 @@ class _CreateTeamScreenState extends State<CreateTeamScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-
+    final l10n = AppLocalizations.of(context)!;
     setState(() => _isLoading = true);
 
     try {
@@ -29,14 +30,14 @@ class _CreateTeamScreenState extends State<CreateTeamScreen> {
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Team created successfully')),
+          SnackBar(content: Text(l10n.teamCreated)),
         );
         context.pop(); // Go back
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to create team: ${e.toString()}')),
+          SnackBar(content: Text('${l10n.failedToCreateTeam}: ${e.toString()}')),
         );
       }
     } finally {
@@ -48,9 +49,10 @@ class _CreateTeamScreenState extends State<CreateTeamScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create New Team'),
+        title: Text(l10n.createNewTeam),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -61,14 +63,14 @@ class _CreateTeamScreenState extends State<CreateTeamScreen> {
             children: [
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Team Name',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.group),
+                decoration: InputDecoration(
+                  labelText: l10n.teamName,
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.group),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter a team name';
+                    return l10n.enterTeamName;
                   }
                   return null;
                 },
@@ -78,7 +80,7 @@ class _CreateTeamScreenState extends State<CreateTeamScreen> {
                 onPressed: _isLoading ? null : _submit,
                 child: _isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text('Create Team'),
+                    : Text(l10n.createTeam),
               ),
             ],
           ),

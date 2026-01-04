@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -35,6 +36,8 @@ class _LoginScreenState extends State<LoginScreen> {
       _errorMessage = null;
     });
 
+    final l10n = AppLocalizations.of(context)!;
+
     try {
       await _authService.login(
         email: _emailController.text.trim(),
@@ -45,45 +48,17 @@ class _LoginScreenState extends State<LoginScreen> {
         context.go('/dashboard');
       }
     } on DioException catch (e) {
-      String errorMsg = 'Login failed. Please check your credentials.';
+      String errorMsg = l10n.loginFailed;
       
-      // Show detailed error for debugging
+      // Simple error mapping for now
       if (e.response?.data != null) {
-        final data = e.response!.data;
-        if (data is Map && data['message'] != null) {
-          errorMsg = data['message'];
-        } else if (data is Map && data['errors'] != null) {
-          final errors = data['errors'] as Map;
-          errorMsg = errors.values.first.first.toString();
-        }
-      } else {
-        // Connection/network errors - show detailed info
-        switch (e.type) {
-          case DioExceptionType.connectionTimeout:
-            errorMsg = 'Connection timeout. Server took too long to respond.';
-            break;
-          case DioExceptionType.sendTimeout:
-            errorMsg = 'Send timeout. Request took too long to send.';
-            break;
-          case DioExceptionType.receiveTimeout:
-            errorMsg = 'Receive timeout. Server took too long to respond.';
-            break;
-          case DioExceptionType.badCertificate:
-            errorMsg = 'SSL Certificate error. Invalid or self-signed certificate.';
-            break;
-          case DioExceptionType.badResponse:
-            errorMsg = 'Bad response from server (${e.response?.statusCode}).';
-            break;
-          case DioExceptionType.cancel:
-            errorMsg = 'Request cancelled.';
-            break;
-          case DioExceptionType.connectionError:
-            errorMsg = 'Connection error: ${e.message ?? "Cannot reach server"}\nURL: ${e.requestOptions.baseUrl}${e.requestOptions.path}';
-            break;
-          case DioExceptionType.unknown:
-            errorMsg = 'Unknown error: ${e.message ?? "Please try again"}';
-            break;
-        }
+         final data = e.response!.data;
+         if (data is Map && data['message'] != null) {
+           errorMsg = data['message'].toString();
+         }
+      } else if (e.type == DioExceptionType.connectionError || 
+                 e.type == DioExceptionType.connectionTimeout) {
+        errorMsg = l10n.connectionError;
       }
       
       setState(() {
@@ -91,7 +66,7 @@ class _LoginScreenState extends State<LoginScreen> {
       });
     } catch (e) {
       setState(() {
-        _errorMessage = 'Unexpected error: ${e.toString()}';
+        _errorMessage = '${l10n.unknownError}: ${e.toString()}';
       });
     } finally {
       if (mounted) {
@@ -105,6 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       body: SafeArea(
@@ -124,7 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'OurFuture',
+                    l10n.appTitle,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.bold,
@@ -133,7 +109,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Couple Finance Tracker',
+                    l10n.appTagline,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurfaceVariant,
@@ -161,17 +137,17 @@ class _LoginScreenState extends State<LoginScreen> {
                   TextFormField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      prefixIcon: Icon(Icons.email_outlined),
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l10n.emailLabel,
+                      prefixIcon: const Icon(Icons.email_outlined),
+                      border: const OutlineInputBorder(),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter your email';
+                        return l10n.enterEmail;
                       }
                       if (!value.contains('@')) {
-                        return 'Please enter a valid email';
+                        return l10n.enterValidEmail;
                       }
                       return null;
                     },
@@ -183,7 +159,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     controller: _passwordController,
                     obscureText: _obscurePassword,
                     decoration: InputDecoration(
-                      labelText: 'Password',
+                      labelText: l10n.password,
                       prefixIcon: const Icon(Icons.lock_outlined),
                       border: const OutlineInputBorder(),
                       suffixIcon: IconButton(
@@ -201,7 +177,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter your password';
+                        return l10n.enterPassword;
                       }
                       return null;
                     },
@@ -223,7 +199,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               color: Colors.white,
                             ),
                           )
-                        : const Text('Login'),
+                        : Text(l10n.loginButton),
                   ),
                   const SizedBox(height: 16),
 
@@ -232,12 +208,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        "Don't have an account? ",
+                        '${l10n.dontHaveAccount.split("?")[0]}? ', 
                         style: TextStyle(color: colorScheme.onSurfaceVariant),
                       ),
                       TextButton(
                         onPressed: () => context.go('/register'),
-                        child: const Text('Register'),
+                        child: Text(l10n.registerButton),
                       ),
                     ],
                   ),

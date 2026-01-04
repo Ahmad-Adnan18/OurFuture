@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../models/goal.dart';
 import '../../models/storage_account.dart';
 import '../../services/goal_service.dart';
@@ -48,6 +49,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   }
 
   Future<void> _loadData() async {
+    final l10n = AppLocalizations.of(context)!;
     try {
       final wallets = await _walletService.getWallets();
       final goals = await _goalService.getGoals();
@@ -61,10 +63,10 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
         }
       });
     } catch (e) {
-      setState(() => _isLoadingData = false);
       if (mounted) {
+        setState(() => _isLoadingData = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to load data')),
+          SnackBar(content: Text(l10n.failedToLoad)),
         );
       }
     }
@@ -77,17 +79,18 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
 
   Future<void> _handleSubmit() async {
     if (!_formKey.currentState!.validate()) return;
+    final l10n = AppLocalizations.of(context)!;
 
     if (_selectedWalletId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a wallet')),
+        SnackBar(content: Text(l10n.selectWallet)),
       );
       return;
     }
 
     if (_requiresGoal && _selectedGoalId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a goal')),
+        SnackBar(content: Text(l10n.selectGoal)),
       );
       return;
     }
@@ -108,7 +111,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Transaction created')),
+          SnackBar(content: Text(l10n.transactionCreated)),
         );
         context.pop();
       }
@@ -116,7 +119,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Failed to create transaction'),
+            content: Text(l10n.failedToCreateTransaction),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -144,11 +147,12 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
     final dateFormat = DateFormat('dd MMM yyyy');
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('New Transaction'),
+        title: Text(l10n.newTransaction),
       ),
       body: _isLoadingData
           ? const Center(child: CircularProgressIndicator())
@@ -161,7 +165,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                   children: [
                     // Transaction Type Selector
                     Text(
-                      'Type',
+                      l10n.type,
                       style: Theme.of(context).textTheme.titleSmall,
                     ),
                     const SizedBox(height: 8),
@@ -169,7 +173,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                       segments: [
                         ButtonSegment(
                           value: 'deposit',
-                          label: const Text('Deposit'),
+                          label: Text(l10n.deposit),
                           icon: Icon(
                             Icons.arrow_upward,
                             color: _selectedType == 'deposit' 
@@ -179,7 +183,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                         ),
                         ButtonSegment(
                           value: 'expense',
-                          label: const Text('Expense'),
+                          label: Text(l10n.expense),
                           icon: Icon(
                             Icons.arrow_downward,
                             color: _selectedType == 'expense' 
@@ -189,7 +193,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                         ),
                         ButtonSegment(
                           value: 'withdrawal',
-                          label: const Text('Withdraw'),
+                          label: Text(l10n.withdraw),
                           icon: Icon(
                             Icons.undo,
                             color: _selectedType == 'withdrawal' 
@@ -224,7 +228,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                             ? colorScheme.primary 
                             : colorScheme.onSurfaceVariant,
                       ),
-                      label: const Text('Adjustment'),
+                      label: Text(l10n.adjustment),
                       style: OutlinedButton.styleFrom(
                         backgroundColor: _selectedType == 'adjustment'
                             ? colorScheme.primaryContainer
@@ -243,7 +247,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                       decoration: InputDecoration(
-                        labelText: 'Amount',
+                        labelText: l10n.amount,
                         prefixText: 'Rp ',
                         border: const OutlineInputBorder(),
                         prefixIcon: Icon(
@@ -255,11 +259,11 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter amount';
+                          return l10n.enterAmount;
                         }
                         final amount = double.tryParse(value.replaceAll(',', ''));
                         if (amount == null || amount <= 0) {
-                          return 'Please enter a valid amount';
+                          return l10n.enterValidAmount;
                         }
                         return null;
                       },
@@ -269,10 +273,10 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                     // Wallet Selector
                     DropdownButtonFormField<int>(
                       value: _selectedWalletId,
-                      decoration: const InputDecoration(
-                        labelText: 'Wallet',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.account_balance_wallet),
+                      decoration: InputDecoration(
+                        labelText: l10n.wallet,
+                        border: const OutlineInputBorder(),
+                        prefixIcon: const Icon(Icons.account_balance_wallet),
                       ),
                       items: _wallets.map((wallet) {
                         return DropdownMenuItem(
@@ -285,7 +289,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                       },
                       validator: (value) {
                         if (value == null) {
-                          return 'Please select a wallet';
+                          return l10n.selectWallet;
                         }
                         return null;
                       },
@@ -297,15 +301,15 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                       DropdownButtonFormField<int?>(
                         value: _selectedGoalId,
                         decoration: InputDecoration(
-                          labelText: _requiresGoal ? 'Goal (Required)' : 'Goal (Optional)',
+                          labelText: _requiresGoal ? l10n.goalRequired : l10n.goalOptional,
                           border: const OutlineInputBorder(),
                           prefixIcon: const Icon(Icons.flag),
                         ),
                         items: [
                           if (!_requiresGoal)
-                            const DropdownMenuItem(
+                             DropdownMenuItem(
                               value: null,
-                              child: Text('No goal (Unallocated)'),
+                              child: Text(l10n.noGoalUnallocated),
                             ),
                           ..._goals.map((goal) {
                             return DropdownMenuItem(
@@ -319,7 +323,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                         },
                         validator: (value) {
                           if (_requiresGoal && value == null) {
-                            return 'Please select a goal';
+                            return l10n.selectGoal;
                           }
                           return null;
                         },
@@ -330,7 +334,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                     ListTile(
                       contentPadding: EdgeInsets.zero,
                       leading: const Icon(Icons.calendar_today),
-                      title: const Text('Date'),
+                      title: Text(l10n.date),
                       subtitle: Text(dateFormat.format(_selectedDate)),
                       onTap: _selectDate,
                       shape: RoundedRectangleBorder(
@@ -344,11 +348,11 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                     TextFormField(
                       controller: _notesController,
                       maxLines: 3,
-                      decoration: const InputDecoration(
-                        labelText: 'Notes (Optional)',
-                        hintText: 'Add description...',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.notes),
+                      decoration: InputDecoration(
+                        labelText: l10n.notesOptional,
+                        hintText: l10n.notesHint,
+                        border: const OutlineInputBorder(),
+                        prefixIcon: const Icon(Icons.notes),
                         alignLabelWithHint: true,
                       ),
                     ),
@@ -373,7 +377,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                               ),
                             )
                           : Text(
-                              _getButtonText(),
+                              _getButtonText(l10n),
                               style: const TextStyle(color: Colors.white),
                             ),
                     ),
@@ -384,18 +388,18 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
     );
   }
 
-  String _getButtonText() {
+  String _getButtonText(AppLocalizations l10n) {
     switch (_selectedType) {
       case 'deposit':
-        return 'Add Deposit';
+        return l10n.addDeposit;
       case 'expense':
-        return 'Record Expense';
+        return l10n.recordExpense;
       case 'withdrawal':
-        return 'Record Withdrawal';
+        return l10n.recordWithdrawal;
       case 'adjustment':
-        return 'Make Adjustment';
+        return l10n.makeAdjustment;
       default:
-        return 'Save';
+        return l10n.save;
     }
   }
 }

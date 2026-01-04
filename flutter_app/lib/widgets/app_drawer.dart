@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../models/user.dart';
 import '../services/auth_service.dart';
 import '../providers/theme_provider.dart';
+import '../providers/locale_provider.dart';
 
 class AppDrawer extends ConsumerStatefulWidget {
   const AppDrawer({super.key});
@@ -38,19 +40,20 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
   }
 
   Future<void> _handleLogout() async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout?'),
+        title: Text(l10n.logOut),
+        content: Text(l10n.logoutConfirmation),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Logout'),
+            child: Text(l10n.logOut),
           ),
         ],
       ),
@@ -65,7 +68,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to logout')),
+            SnackBar(content: Text(l10n.failedToLogout)),
           );
         }
       }
@@ -73,6 +76,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
   }
 
   Future<void> _switchTeam(Team team) async {
+    final l10n = AppLocalizations.of(context)!;
     try {
       // Call API to switch team
       final apiService = _authService.apiService;
@@ -84,7 +88,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
       if (mounted) {
         Navigator.pop(context); // Close drawer
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Switched to ${team.name}')),
+          SnackBar(content: Text(l10n.switchedTo(team.name))),
         );
         // Refresh current page
         context.go('/dashboard');
@@ -92,7 +96,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to switch team')),
+          SnackBar(content: Text(l10n.failedToSwitchTeam)),
         );
       }
     }
@@ -104,6 +108,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
     final themeMode = ref.watch(themeProvider);
     final isDark = themeMode == ThemeMode.dark || 
                    (themeMode == ThemeMode.system && MediaQuery.platformBrightnessOf(context) == Brightness.dark);
+    final l10n = AppLocalizations.of(context)!;
 
     return Drawer(
       child: _isLoading
@@ -118,27 +123,40 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                   ),
                   currentAccountPicture: CircleAvatar(
                     backgroundColor: Colors.white,
-                    child: Text(
-                      _user?.name.substring(0, 1).toUpperCase() ?? 'U',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.primary,
-                      ),
-                    ),
+                    backgroundImage: _user?.profilePhotoUrl != null
+                        ? NetworkImage(_user!.profilePhotoUrl!)
+                        : null,
+                    child: _user?.profilePhotoUrl == null
+                        ? Text(
+                            _user?.name.substring(0, 1).toUpperCase() ?? 'U',
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.primary,
+                            ),
+                          )
+                        : null,
                   ),
                   accountName: Text(
-                    _user?.name ?? 'User',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    _user?.name ?? l10n.guest,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.black : Colors.white,
+                    ),
                   ),
-                  accountEmail: Text(_user?.email ?? ''),
+                  accountEmail: Text(
+                    _user?.email ?? '',
+                    style: TextStyle(
+                      color: isDark ? Colors.black : Colors.white,
+                    ),
+                  ),
                 ),
 
                 // Current Team
                 if (_user?.currentTeam != null)
                   ListTile(
                     leading: const Icon(Icons.group),
-                    title: const Text('Current Team'),
+                    title: Text(l10n.currentTeam),
                     subtitle: Text(
                       _user!.currentTeam!.name,
                       style: TextStyle(
@@ -154,7 +172,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Text(
-                    'MANAGE ACCOUNT',
+                    l10n.manageAccount,
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -164,7 +182,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                 ),
                 ListTile(
                   leading: const Icon(Icons.person_outline),
-                  title: const Text('Profile'),
+                  title: Text(l10n.profile),
                   onTap: () {
                     Navigator.pop(context);
                     context.pushNamed('profile', extra: _user);
@@ -178,7 +196,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Text(
-                      'MANAGE TEAM',
+                      l10n.manageTeam,
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
@@ -188,7 +206,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                   ),
                   ListTile(
                     leading: const Icon(Icons.settings_outlined),
-                    title: const Text('Team Settings'),
+                    title: Text(l10n.teamSettings),
                     onTap: () {
                       Navigator.pop(context);
                       context.pushNamed('team-settings', extra: _user!.currentTeam);
@@ -196,7 +214,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                   ),
                   ListTile(
                     leading: const Icon(Icons.person_add_outlined),
-                    title: const Text('Invite Member'),
+                    title: Text(l10n.inviteMember),
                     onTap: () {
                       Navigator.pop(context);
                       context.pushNamed('invite-member', extra: _user!.currentTeam);
@@ -204,7 +222,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                   ),
                   ListTile(
                     leading: const Icon(Icons.add_circle_outline),
-                    title: const Text('Create New Team'),
+                    title: Text(l10n.createNewTeam),
                     onTap: () {
                       Navigator.pop(context);
                       context.push('/create-team');
@@ -217,7 +235,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       child: Text(
-                        'SWITCH TEAMS',
+                        l10n.switchTeams,
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
@@ -240,10 +258,67 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                   const Divider(),
                 ],
 
+                // Language Switcher
+                ListTile(
+                  leading: const Icon(Icons.language),
+                  title: Text(l10n.language),
+                  subtitle: Text(
+                     Localizations.localeOf(context).languageCode == 'en' 
+                        ? l10n.english 
+                        : l10n.indonesian
+                  ),
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => SimpleDialog(
+                        title: Text(l10n.selectLanguage),
+                        children: [
+                          SimpleDialogOption(
+                            onPressed: () {
+                              ref.read(localeProvider.notifier).setLocale(const Locale('en'));
+                              Navigator.pop(context);
+                              Navigator.pop(context); // Close drawer too
+                            },
+                            child: Row(
+                              children: [
+                                Radio<String>(
+                                  value: 'en',
+                                  groupValue: Localizations.localeOf(context).languageCode,
+                                  onChanged: null,
+                                ),
+                                Text(l10n.english),
+                              ],
+                            ),
+                          ),
+                          SimpleDialogOption(
+                            onPressed: () {
+                              ref.read(localeProvider.notifier).setLocale(const Locale('id'));
+                              Navigator.pop(context);
+                              Navigator.pop(context); // Close drawer too
+                            },
+                            child: Row(
+                              children: [
+                                Radio<String>(
+                                  value: 'id',
+                                  groupValue: Localizations.localeOf(context).languageCode,
+                                  onChanged: null,
+                                ),
+                                Text(l10n.indonesian),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+
+                const Divider(),
+
                 // Theme Toggle
                 ListTile(
                   leading: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
-                  title: Text(isDark ? 'Light Mode' : 'Dark Mode'),
+                  title: Text(isDark ? l10n.lightMode : l10n.darkMode),
                   onTap: () {
                     ref.read(themeProvider.notifier).toggleTheme();
                     Navigator.pop(context);
@@ -256,7 +331,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                 ListTile(
                   leading: Icon(Icons.logout, color: colorScheme.error),
                   title: Text(
-                    'Log Out',
+                    l10n.logOut,
                     style: TextStyle(color: colorScheme.error),
                   ),
                   onTap: _handleLogout,

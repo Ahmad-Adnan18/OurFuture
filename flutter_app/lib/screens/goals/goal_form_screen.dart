@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../models/goal.dart';
 import '../../services/goal_service.dart';
 
@@ -46,7 +47,7 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
 
   Future<void> _loadGoal() async {
     setState(() => _isLoadingData = true);
-
+    final l10n = AppLocalizations.of(context)!;
     try {
       final goal = await _goalService.getGoal(widget.goalId!);
       setState(() {
@@ -65,7 +66,7 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to load goal')),
+          SnackBar(content: Text(l10n.failedToLoadGoal)),
         );
         context.pop();
       }
@@ -74,7 +75,7 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
 
   Future<void> _handleSubmit() async {
     if (!_formKey.currentState!.validate()) return;
-
+    final l10n = AppLocalizations.of(context)!;
     setState(() => _isLoading = true);
 
     try {
@@ -99,7 +100,7 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(_isEditing ? 'Goal updated' : 'Goal created')),
+          SnackBar(content: Text(_isEditing ? l10n.goalUpdated : l10n.goalCreated)),
         );
         context.pop();
       }
@@ -107,7 +108,7 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to ${_isEditing ? 'update' : 'create'} goal'),
+            content: Text(_isEditing ? l10n.failedToUpdateGoal : l10n.failedToCreateGoal),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -143,11 +144,12 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final dateFormat = DateFormat('dd MMM yyyy');
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditing ? 'Edit Goal' : 'New Goal'),
+        title: Text(_isEditing ? l10n.editGoal : l10n.newGoal),
       ),
       body: _isLoadingData
           ? const Center(child: CircularProgressIndicator())
@@ -161,15 +163,15 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
                     // Title Field
                     TextFormField(
                       controller: _titleController,
-                      decoration: const InputDecoration(
-                        labelText: 'Goal Title',
-                        hintText: 'e.g., Wedding Fund',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.flag_outlined),
+                      decoration: InputDecoration(
+                        labelText: l10n.goalTitle,
+                        hintText: l10n.goalTitleHint,
+                        border: const OutlineInputBorder(),
+                        prefixIcon: const Icon(Icons.flag_outlined),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter a title';
+                          return l10n.enterGoalTitle;
                         }
                         return null;
                       },
@@ -180,20 +182,20 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
                     TextFormField(
                       controller: _targetAmountController,
                       keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'Target Amount',
-                        hintText: 'e.g., 100000000',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.attach_money),
+                      decoration: InputDecoration(
+                        labelText: l10n.targetAmountLabel,
+                        hintText: l10n.amountHint,
+                        border: const OutlineInputBorder(),
+                        prefixIcon: const Icon(Icons.attach_money),
                         prefixText: 'Rp ',
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter target amount';
+                          return l10n.enterTargetAmount;
                         }
                         final amount = double.tryParse(value.replaceAll(',', ''));
                         if (amount == null || amount <= 0) {
-                          return 'Please enter a valid amount';
+                          return l10n.enterValidAmount;
                         }
                         return null;
                       },
@@ -205,7 +207,7 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
                       ListTile(
                         contentPadding: EdgeInsets.zero,
                         leading: const Icon(Icons.calendar_today),
-                        title: const Text('Start Date'),
+                        title: Text(l10n.startDate),
                         subtitle: Text(dateFormat.format(_startDate)),
                         onTap: () => _selectDate(true),
                         shape: RoundedRectangleBorder(
@@ -221,11 +223,11 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
                     ListTile(
                       contentPadding: EdgeInsets.zero,
                       leading: const Icon(Icons.event),
-                      title: const Text('Target Date (Optional)'),
+                      title: Text(l10n.targetDateOptional),
                       subtitle: Text(
                         _estimatedDate != null
                             ? dateFormat.format(_estimatedDate!)
-                            : 'Not set',
+                            : l10n.notSet,
                       ),
                       trailing: _estimatedDate != null
                           ? IconButton(
@@ -249,15 +251,15 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
                     if (_isEditing) ...[
                       DropdownButtonFormField<String>(
                         value: _status,
-                        decoration: const InputDecoration(
-                          labelText: 'Status',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.check_circle_outline),
+                        decoration: InputDecoration(
+                          labelText: l10n.status,
+                          border: const OutlineInputBorder(),
+                          prefixIcon: const Icon(Icons.check_circle_outline),
                         ),
-                        items: const [
-                          DropdownMenuItem(value: 'active', child: Text('Active')),
-                          DropdownMenuItem(value: 'completed', child: Text('Completed')),
-                          DropdownMenuItem(value: 'archived', child: Text('Archived')),
+                        items: [
+                           DropdownMenuItem(value: 'active', child: Text(l10n.active)),
+                           DropdownMenuItem(value: 'completed', child: Text(l10n.completed)),
+                           DropdownMenuItem(value: 'archived', child: Text(l10n.archived)),
                         ],
                         onChanged: (value) {
                           if (value != null) {
@@ -283,7 +285,7 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
                                 color: Colors.white,
                               ),
                             )
-                          : Text(_isEditing ? 'Update Goal' : 'Create Goal'),
+                          : Text(_isEditing ? l10n.updateGoal : l10n.createGoal),
                     ),
                   ],
                 ),

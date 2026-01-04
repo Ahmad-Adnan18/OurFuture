@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/storage_account.dart';
 import '../../services/wallet_service.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class WalletsScreen extends StatefulWidget {
   const WalletsScreen({super.key});
@@ -29,26 +30,40 @@ class _WalletsScreenState extends State<WalletsScreen> {
   }
 
   Future<void> _loadWallets() async {
+    print('DEBUG: Starting _loadWallets');
+    // Don't access context here synchronously as it might be called from initState
     setState(() {
       _isLoading = true;
       _error = null;
     });
 
     try {
+      print('DEBUG: Calling _walletService.getWallets()');
       final wallets = await _walletService.getWallets();
-      setState(() {
-        _wallets = wallets;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _error = 'Failed to load wallets';
-        _isLoading = false;
-      });
+      print('DEBUG: _walletService.getWallets() returned: ${wallets.length} wallets');
+      
+      if (mounted) {
+        setState(() {
+          _wallets = wallets;
+          _isLoading = false;
+        });
+      }
+      print('DEBUG: setState called with success');
+    } catch (e, stackTrace) {
+      print('DEBUG: Error in _loadWallets: $e');
+      print('DEBUG: Stack trace: $stackTrace');
+      if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
+        setState(() {
+          _error = l10n.failedToLoadWallets;
+          _isLoading = false;
+        });
+      }
     }
   }
 
   Future<void> _showWalletDialog({StorageAccount? wallet}) async {
+    final l10n = AppLocalizations.of(context)!;
     final isEditing = wallet != null;
     final nameController = TextEditingController(text: wallet?.name ?? '');
     final balanceController = TextEditingController(
@@ -60,30 +75,30 @@ class _WalletsScreenState extends State<WalletsScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: Text(isEditing ? 'Edit Wallet' : 'New Wallet'),
+          title: Text(isEditing ? l10n.editWallet : l10n.newWallet),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Wallet Name',
-                  hintText: 'e.g., Bank Jago',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.walletName,
+                  hintText: l10n.walletNameHint,
+                  border: const OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 value: selectedType,
-                decoration: const InputDecoration(
-                  labelText: 'Type',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.type,
+                  border: const OutlineInputBorder(),
                 ),
-                items: const [
-                  DropdownMenuItem(value: 'bank', child: Text('🏦 Bank')),
-                  DropdownMenuItem(value: 'e-wallet', child: Text('📱 E-Wallet')),
-                  DropdownMenuItem(value: 'investment', child: Text('📈 Investment')),
-                  DropdownMenuItem(value: 'cash', child: Text('💵 Cash')),
+                items: [
+                   DropdownMenuItem(value: 'bank', child: Text(l10n.walletTypeBank)),
+                   DropdownMenuItem(value: 'e-wallet', child: Text(l10n.walletTypeEWallet)),
+                   DropdownMenuItem(value: 'investment', child: Text(l10n.walletTypeInvestment)),
+                   DropdownMenuItem(value: 'cash', child: Text(l10n.walletTypeCash)),
                 ],
                 onChanged: (value) {
                   if (value != null) {
@@ -95,10 +110,10 @@ class _WalletsScreenState extends State<WalletsScreen> {
               TextField(
                 controller: balanceController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Balance',
+                decoration: InputDecoration(
+                  labelText: l10n.balance,
                   prefixText: 'Rp ',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                 ),
               ),
             ],
@@ -106,7 +121,7 @@ class _WalletsScreenState extends State<WalletsScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
+              child: Text(l10n.cancel),
             ),
             FilledButton(
               onPressed: () async {
@@ -131,17 +146,19 @@ class _WalletsScreenState extends State<WalletsScreen> {
                       balance: balance,
                     );
                   }
-                  Navigator.pop(context, true);
+                  if (context.mounted) Navigator.pop(context, true);
                 } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Failed to ${isEditing ? 'update' : 'create'} wallet'),
-                      backgroundColor: Theme.of(context).colorScheme.error,
-                    ),
-                  );
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(isEditing ? l10n.failedToUpdateWallet : l10n.failedToCreateWallet),
+                        backgroundColor: Theme.of(context).colorScheme.error,
+                      ),
+                    );
+                  }
                 }
               },
-              child: Text(isEditing ? 'Update' : 'Create'),
+              child: Text(isEditing ? l10n.update : l10n.create),
             ),
           ],
         ),
@@ -154,22 +171,23 @@ class _WalletsScreenState extends State<WalletsScreen> {
   }
 
   Future<void> _deleteWallet(StorageAccount wallet) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Wallet'),
-        content: Text('Are you sure you want to delete "${wallet.name}"?'),
+        title: Text(l10n.deleteWallet),
+        content: Text(l10n.deleteWalletConfirmation(wallet.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
-            child: const Text('Delete'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -181,14 +199,14 @@ class _WalletsScreenState extends State<WalletsScreen> {
         _loadWallets();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Wallet deleted')),
+            SnackBar(content: Text(l10n.walletDeleted)),
           );
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Failed to delete wallet'),
+              content: Text(l10n.failedToDeleteWallet),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
@@ -200,10 +218,11 @@ class _WalletsScreenState extends State<WalletsScreen> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Wallets'),
+        title: Text(l10n.wallets),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -222,7 +241,7 @@ class _WalletsScreenState extends State<WalletsScreen> {
                       const SizedBox(height: 16),
                       FilledButton(
                         onPressed: _loadWallets,
-                        child: const Text('Retry'),
+                        child: Text(l10n.retry),
                       ),
                     ],
                   ),
@@ -245,14 +264,14 @@ class _WalletsScreenState extends State<WalletsScreen> {
                                     ),
                                     const SizedBox(height: 16),
                                     Text(
-                                      'No wallets yet',
+                                      l10n.noWalletsYet,
                                       style: TextStyle(color: colorScheme.onSurfaceVariant),
                                     ),
                                     const SizedBox(height: 16),
                                     FilledButton.icon(
                                       onPressed: () => _showWalletDialog(),
                                       icon: const Icon(Icons.add),
-                                      label: const Text('Add Wallet'),
+                                      label: Text(l10n.addWallet),
                                     ),
                                   ],
                                 ),
