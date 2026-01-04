@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../models/transaction.dart';
 import '../../services/transaction_service.dart';
 import '../../services/api_service.dart';
@@ -249,9 +250,9 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
         options: Options(responseType: ResponseType.bytes),
       );
 
-      // Get downloads directory
-      final directory = await getDownloadsDirectory() ?? await getApplicationDocumentsDirectory();
-      final filename = 'transactions_${DateTime.now().toString().split(' ')[0]}.pdf';
+      // Save to temp directory first
+      final directory = await getApplicationDocumentsDirectory();
+      final filename = 'OurFuture_Transactions_${DateTime.now().toString().split(' ')[0]}.pdf';
       final filePath = '${directory.path}/$filename';
 
       // Save file
@@ -260,12 +261,22 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
 
       if (mounted) {
         setState(() => _isExporting = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('✅ PDF saved: $filename'),
-            duration: const Duration(seconds: 5),
-          ),
-        );
+        
+        if (Platform.isAndroid || Platform.isIOS) {
+          // Mobile: Share the file
+          await Share.shareXFiles(
+            [XFile(filePath)],
+            subject: 'OurFuture Transaction Report',
+          );
+        } else {
+          // Desktop: Show success message with path
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('✅ PDF saved: $filePath'),
+              duration: const Duration(seconds: 10),
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
