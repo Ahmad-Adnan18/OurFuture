@@ -18,9 +18,11 @@
 | 🏦 **Multi Storage** | Kelola berbagai dompet (Bank, E-Wallet, Investasi, Cash) |
 | 🎯 **Goal Tracking** | Tetapkan tujuan keuangan bersama (Nikah, Rumah, Liburan) |
 | 📊 **Smart Progress** | Logic "Spending vs Saving" - expense untuk tujuan tidak mengurangi progress |
-| 👫 **Collaborative** | Undang pasangan ke workspace yang sama |
+| � **Allocate Funds** | Alokasikan dana bebas ke goal tanpa menambah saldo baru |
+| �👫 **Collaborative** | Undang pasangan ke workspace yang sama |
 | 🔒 **Multi-Tenant** | Data pasangan A tidak terlihat oleh pasangan B |
 | 📱 **Mobile App** | Akses data keuangan kapan saja via Android/iOS/Windows |
+| 🌐 **Bilingual** | Dukungan bahasa Indonesia & English |
 
 ## 🛠️ Tech Stack
 
@@ -154,20 +156,25 @@ Aplikasi mobile berkomunikasi dengan backend melalui endpoints berikut:
 
 ## ⚙️ Logika Transaksi
 
-| Type | Storage Balance | Goal Current | Goal Collected |
-|------|-----------------|--------------|----------------|
-| **Deposit** | ➕ Bertambah | ➕ Bertambah | ➕ Bertambah |
-| **Expense** | ➖ Berkurang | ➖ Berkurang | ➡️ Tetap |
-| **Withdrawal** | ➖ Berkurang | ➖ Berkurang | ➖ Berkurang |
-| **Adjustment** | ➕/➖ | - | - |
+| Type | Storage Balance | Goal Current | Goal Collected | Use Case |
+|------|-----------------|--------------|----------------|----------|
+| **Deposit** | ➕ Bertambah | ➕ Bertambah | ➕ Bertambah | Terima gaji, tabungan masuk |
+| **Expense** | ➖ Berkurang | ➖ Berkurang | ➡️ Tetap | Belanja sesuai tujuan goal |
+| **Withdrawal** | ➖ Berkurang | ➖ Berkurang | ➖ Berkurang | Tarik dana dari goal (batal) |
+| **Allocate** | ➡️ Tetap | ➕ Bertambah | ➕ Bertambah | Alokasi dana bebas ke goal |
+| **Adjustment** | ➕/➖ | - | - | Koreksi saldo dompet |
 
-> **Note:** Expense (belanja untuk goal) tidak mengurangi progress karena uang dipakai sesuai tujuan.
+> **Note:** 
+> - **Expense** tidak mengurangi progress karena uang dipakai sesuai tujuan.
+> - **Allocate** memindahkan dana yang sudah ada ke goal tanpa menambah saldo baru.
 
 ## 🎨 Design System
 
-- **Primary:** `emerald-600` (Nuansa pertumbuhan)
-- **Danger:** `rose-500` (Withdrawal/Expense)
-- **Warning:** `amber-500` (Adjustment)
+- **Primary:** `emerald-600` (Nuansa pertumbuhan / Deposit)
+- **Danger:** `rose-500` (Expense)
+- **Warning:** `amber-500` (Withdrawal)
+- **Allocate:** `violet-500` (Alokasi dana)
+- **Adjustment:** `sky-500` (Koreksi saldo)
 - **Background:** `slate-50` (Light) / `slate-900` (Dark)
 
 ## 📱 Responsive Design
