@@ -1,9 +1,14 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../models/transaction.dart';
 import '../../services/transaction_service.dart';
+import '../../services/api_service.dart';
 import '../../widgets/transaction_tile.dart';
+import '../../config/api_config.dart';
 
 class TransactionsScreen extends StatefulWidget {
   const TransactionsScreen({super.key});
@@ -19,6 +24,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   List<Transaction> _transactions = [];
   bool _isLoading = true;
   bool _isLoadingMore = false;
+  bool _isExporting = false;
   String? _error;
   String? _selectedType;
   int _currentPage = 1;
@@ -145,6 +151,135 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     }
   }
 
+  Future<void> _showExportDialog() async {
+    final l10n = AppLocalizations.of(context)!;
+    DateTime? startDate;
+    DateTime? endDate;
+
+    await showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text(l10n.exportTransactions),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                title: Text(l10n.startDate),
+                subtitle: Text(startDate?.toString().split(' ')[0] ?? l10n.optional),
+                trailing: const Icon(Icons.calendar_today),
+                onTap: () async {
+                  final picked = await showDatePicker(
+                    context: context,
+                    initialDate: startDate ?? DateTime.now(),
+                    firstDate: DateTime(2020),
+                    lastDate: DateTime.now(),
+                  );
+                  if (picked != null) {
+                    setDialogState(() => startDate = picked);
+                  }
+                },
+              ),
+              ListTile(
+                title: Text(l10n.endDate),
+                subtitle: Text(endDate?.toString().split(' ')[0] ?? l10n.optional),
+                trailing: const Icon(Icons.calendar_today),
+                onTap: () async {
+                  final picked = await showDatePicker(
+                    context: context,
+                    initialDate: endDate ?? DateTime.now(),
+                    firstDate: DateTime(2020),
+                    lastDate: DateTime.now(),
+                  );
+                  if (picked != null) {
+                    setDialogState(() => endDate = picked);
+                  }
+                },
+              ),
+              const SizedBox(height: 8),
+              Text(
+                l10n.leaveEmptyForAll,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l10n.cancel),
+            ),
+            FilledButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                await _exportTransactions(startDate, endDate);
+              },
+              child: Text(l10n.downloadCsv),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _exportTransactions(DateTime? startDate, DateTime? endDate) async {
+    if (_isExporting) return;
+    
+    setState(() => _isExporting = true);
+    
+    final l10n = AppLocalizations.of(context)!;
+
+    try {
+      final params = <String, String>{};
+      if (startDate != null) {
+        params['start_date'] = startDate.toIso8601String().split('T')[0];
+      }
+      if (endDate != null) {
+        params['end_date'] = endDate.toIso8601String().split('T')[0];
+      }
+
+      final queryString = params.entries.map((e) => '${e.key}=${e.value}').join('&');
+      final url = '/transactions/export${queryString.isNotEmpty ? '?$queryString' : ''}';
+
+      // Download PDF using API service
+      final response = await ApiService().dio.get(
+        url,
+        options: Options(responseType: ResponseType.bytes),
+      );
+
+      // Get downloads directory
+      final directory = await getDownloadsDirectory() ?? await getApplicationDocumentsDirectory();
+      final filename = 'transactions_${DateTime.now().toString().split(' ')[0]}.pdf';
+      final filePath = '${directory.path}/$filename';
+
+      // Save file
+      final file = File(filePath);
+      await file.writeAsBytes(response.data);
+
+      if (mounted) {
+        setState(() => _isExporting = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('✅ PDF saved: $filename'),
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isExporting = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.exportFailed),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -154,6 +289,20 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
       appBar: AppBar(
         title: Text(l10n.transactions),
         actions: [
+          _isExporting
+              ? const Padding(
+                  padding: EdgeInsets.all(12),
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                )
+              : IconButton(
+                  icon: const Icon(Icons.file_download_outlined),
+                  tooltip: l10n.export,
+                  onPressed: _showExportDialog,
+                ),
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () => context.push('/transactions/create')

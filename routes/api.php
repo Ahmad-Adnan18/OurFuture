@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\ExportController;
 use App\Http\Controllers\Api\GoalController;
 use App\Http\Controllers\Api\StorageAccountController;
 use App\Http\Controllers\Api\TransactionController;
@@ -51,6 +52,9 @@ Route::middleware('auth:sanctum')->group(function () {
         'update' => 'api.wallets.update',
         'destroy' => 'api.wallets.destroy',
     ]);
+
+    // Export (must be before transactions resource!)
+    Route::get('/transactions/export', [ExportController::class, 'transactions'])->name('api.transactions.export');
 
     // Transactions - prefix with 'api.'
     Route::apiResource('transactions', TransactionController::class)->except(['update'])->names([

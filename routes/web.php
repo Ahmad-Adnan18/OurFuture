@@ -22,4 +22,5 @@ Route::middleware([
     Route::resource('wallets', \App\Http\Controllers\StorageAccountController::class)->names('storage')->except(['create', 'edit', 'show']);
     Route::resource('goals', \App\Http\Controllers\GoalController::class)->except(['create', 'edit', 'show']);
     Route::resource('transactions', \App\Http\Controllers\TransactionController::class)->only(['index', 'create', 'store']);
+    Route::get('/export/transactions', [\App\Http\Controllers\ExportController::class, 'transactions'])->name('export.transactions');
 });

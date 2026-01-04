@@ -205,5 +205,13 @@
   "collected": "Terkumpul",
   "remaining": "Sisa",
   "allocate": "Alokasi",
-  "allocateDescription": "Pindahkan dana bebas ke goal — saldo dompet tetap sama."
+  "allocateDescription": "Pindahkan dana bebas ke goal — saldo dompet tetap sama.",
+  "export": "Ekspor",
+  "exportTransactions": "Ekspor Transaksi",
+  "startDate": "Tanggal Mulai",
+  "endDate": "Tanggal Akhir",
+  "optional": "Opsional",
+  "leaveEmptyForAll": "Kosongkan untuk ekspor semua transaksi.",
+  "downloadCsv": "Download PDF",
+  "exportFailed": "Gagal ekspor. Silakan coba lagi."
 }

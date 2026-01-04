@@ -229,5 +229,13 @@
   "collected": "Collected",
   "remaining": "Remaining",
   "allocate": "Allocate",
-  "allocateDescription": "Move unallocated funds to a goal — wallet stays the same."
+  "allocateDescription": "Move unallocated funds to a goal — wallet stays the same.",
+  "export": "Export",
+  "exportTransactions": "Export Transactions",
+  "startDate": "Start Date",
+  "endDate": "End Date",
+  "optional": "Optional",
+  "leaveEmptyForAll": "Leave empty to export all transactions.",
+  "downloadCsv": "Download PDF",
+  "exportFailed": "Failed to export. Please try again."
 }
